@@ -25,6 +25,9 @@ full_app =
     map '/.well-known/jwks.json' do
       run jwks_server
     end
+    map '/healthz' do
+      run ->(_env) { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }
+    end
   end
 
 
