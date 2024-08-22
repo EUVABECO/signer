@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby --disable-jit
+# frozen_string_literal: true
+
+require "bundler/setup"
+
+require_relative "../initializers"
+
+def reload!
+  $loader.reload
+end
+
+def visit_dependencies(hash)
+  hash.each do |key, value|
+    if value.is_a?(Hash)
+      visit_dependencies(value)
+    else
+      instance_variable_set("@#{key}", value)
+      define_singleton_method(key) { value }
+    end
+  end
+end
+
+dependencies = Initializers.init_all
+
+visit_dependencies(dependencies)
+
+require 'irb'
+IRB.start
