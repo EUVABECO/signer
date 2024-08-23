@@ -13,7 +13,7 @@ module Procedures
         {
           **cwt.deconstruct_keys,
           signature: Base64.strict_encode64(cwt.signature),
-          verrified: @signer.verify_cwt(cwt)
+          verified: @signer.verify_cwt(cwt)
         }
     end
   end
