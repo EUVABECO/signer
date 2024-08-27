@@ -7,6 +7,7 @@ require 'base64'
 require 'bundler'
 require "rqrcode"
 require "securerandom"
+require 'nuva'
 
 Bundler.require(:default)
 
@@ -32,7 +33,9 @@ module Initializers
 
     router = Web::Router.new(Hash.new(->(_) { [404, {}, []] }))
 
-    procedures = init_procedures(priv_key_store:, signer:, router:)
+    dependencies[:nuva] ||= Nuva::Nuva.load
+    dependencies[:md2pdf] ||= Utils::Md2Pdf.new
+    procedures = init_procedures(priv_key_store:, signer:, router:, nuva: dependencies[:nuva], md2pdf: dependencies[:md2pdf])
     web_router = init_router(procedures:, router:)
     dependencies[:procedures] ||= procedures
     dependencies[:web_router] ||= web_router
@@ -41,7 +44,7 @@ module Initializers
     dependencies
   end
 
-  def self.init_procedures(priv_key_store:, signer:, router:)
+  def self.init_procedures(priv_key_store:, signer:, router:, md2pdf:, nuva:)
     to_cwt = Procedures::ToCwt.new(priv_key_store:, signer:)
     to_hcert = Procedures::ToHcert.new(signer:, to_cwt:)
     to_jwt = Procedures::ToJwt.new(priv_key_store:)
@@ -54,7 +57,8 @@ module Initializers
       to_hcert_qr_code: Procedures::ToHcertQrCode.new(to_hcert:),
       from_hcert: Procedures::FromHcert.new(signer:),
       to_jwt_qr_code: Procedures::ToJwtQrCode.new(to_jwt:),
-      pipeline: Procedures::Pipeline.new(router:)
+      pipeline: Procedures::Pipeline.new(router:),
+      to_hcert_pdf: Procedures::ToHcertPdf.new(to_hcert:, md2pdf:, nuva:)
     }
   end
 
@@ -66,6 +70,7 @@ module Initializers
     router.route(method: 'to_hcert', to: procedures[:to_hcert])
     router.route(method: 'to_hcert_qr_code', to: procedures[:to_hcert_qr_code])
     router.route(method: 'to_jwt_qr_code', to: procedures[:to_jwt_qr_code])
+    router.route(method: 'to_hcert_pdf', to: procedures[:to_hcert_pdf])
 
     router.route(method: 'pipeline', to: procedures[:pipeline])
 

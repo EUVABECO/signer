@@ -1,0 +1,37 @@
+---
+author: "MesVaccins.net"
+date: "19/08/2024"
+data: '{ "hcert": "<%= hcert %>" }'
+style:
+  h1:
+    size: "16"
+  h2:
+    size: "14"
+  h3:
+    size: "12"
+  h4:
+    size: "10"
+  p:
+    size: "9"
+  table: 
+    colors: ["f3f9ff", "ffffff"]
+  image:
+    QrCode:
+      width: 100
+      float: "right"
+---
+
+# European Vaccination Card
+
+## Identity
+
+> **FIRST NAME:** <%= hcert_data[:nam][:fnt] %>
+> **LAST NAME:** <%= hcert_data[:nam][:gnt] %>
+> **BIRTH DATE:** <%= hcert_data[:dob] %>
+> ![QrCode](data:image/png;base64,<%= qrcode %>)
+
+## Historique Vaccinal
+
+|DATE       |    VACCIN     | DIESASES                                                               |
+|-----------|---------------|------------------------------------------------------------------------|
+<%= hcert_data[:v].map { |vr| "|#{vr[:date]} | #{vr[:name]} |  |" }.join("\n")  %>

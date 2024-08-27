@@ -12,6 +12,10 @@ gem "rqrcode"
 gem 'jwt'
 gem 'rack-cors'
 gem "rack", "~> 2.0"
+gem 'nuva'
+gem 'prawn'
+gem 'prawn-table'
+gem 'markly'
 
 group :development do
   gem 'rackup'
