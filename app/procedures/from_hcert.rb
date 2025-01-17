@@ -5,10 +5,13 @@ module Procedures
     end
 
     def call(hcert:)
-      cwt =
-        Base45
-          .decode(hcert)
-          .then { |ziped| Zlib::Inflate.inflate(ziped).then { |signed_cwt| Cose::SignedCwt.from_bin(signed_cwt) } }
+      cwt = Base45
+        .decode(hcert)
+        .then do |ziped|
+          Zlib::Inflate.inflate(ziped).then do |signed_cwt|
+            Cose::SignedCwt.from_bin(signed_cwt)
+          end
+        end
 
         {
           **cwt.deconstruct_keys,

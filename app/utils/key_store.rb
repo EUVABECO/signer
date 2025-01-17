@@ -6,7 +6,7 @@ module Utils
     end
 
     def add(jwk_key)
-      raise 'Wrong store' if @pub && jwk_key.private?
+      # raise 'Wrong store' if @pub && jwk_key.private?
 
       @keys[jwk_key[:kid]] = jwk_key
     end

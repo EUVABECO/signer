@@ -61,7 +61,9 @@ module Cose
     end
 
     def verify(kid:, msg:, sig:)
-      public_key = @pub_key_store.get(kid).verify_key
+      key = @pub_key_store.get(kid)
+      raise "Public key with kid: #{kid} not found" unless key
+      public_key = key.verify_key
       curve_definition = curve_by_name(public_key.group.curve_name)
       digest = OpenSSL::Digest.new(curve_definition[:digest])
       public_key.dsa_verify_asn1(digest.digest(msg), raw_to_asn1(sig, public_key))

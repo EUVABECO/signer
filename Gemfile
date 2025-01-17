@@ -16,13 +16,17 @@ gem 'nuva'
 gem 'prawn'
 gem 'prawn-table'
 gem 'markly'
+gem 'rake'
 
-group :development do
+group :development, :test do
   gem 'rackup'
   gem  'ruby-lsp'
   gem 'solargraph'
+  gem "byebug", "~> 11.1"
 end
 
 group :test do
   gem 'rspec'
 end
+
+

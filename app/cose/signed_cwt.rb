@@ -2,10 +2,10 @@ module Cose
   class SignedCwt
     TAG = 18
     KID_HEADER = 4
-    attr_reader :protected, :unprotected, :payload, :signature
+    attr_reader :protected, :unprotected, :payload, :signature, :claims
 
     class Claims
-      attr_reader :iss, :sub, :aud, :exp, :nbf, :iat, :cti
+      attr_reader :iss, :sub, :aud, :exp, :nbf, :iat, :cti, :other
       # +------+-----+----------------------------------+
       # | Name | Key | Value Type                       |
       # +------+-----+----------------------------------+
@@ -18,25 +18,60 @@ module Cose
       # | cti  | 7   | byte string                      |
       # +------+-----+----------------------------------+
 
-      KEY_MAPPER = { 1 => :iss, 2 => :sub, 3 => :aud, 4 => :exp, 5 => :nbf, 6 => :iat, 7 => :cti }
-
       def self.from_hash(hash)
-        new(**hash.transform_keys { |k| KEY_MAPPER[k] })
+        new(hash)
       end
 
-      def initialize(iss: nil, sub: nil, aud: nil, exp: nil, nbf: nil, iat: nil, cti: nil)
-        @iss = iss
-        @sub = sub
-        @aud = aud
-        @exp = exp
-        @nbf = nbf
-        @iat = iat
-        @cti = cti
+      def initialize(hash)
+        @other = {}
+        hash.each do |k, v|
+          case k
+          in :iss | 1
+            @iss = v
+          in :sub | 2
+            @sub = v
+          in :aud | 3
+            @aud = v
+          in :exp | 4
+            @exp = v
+          in :nbf | 5
+            @nbf = v
+          in :iat | 6
+            @iat = v
+          in :cti | 7
+            @cti = v
+          else
+            @other[k] = v
+          end
+        end
+      end
+
+      def to_h
+        {
+          1 => @iss,
+          2 => @sub,
+          3 => @aud,
+          4 => @exp,
+          5 => @nbf,
+          6 => @iat,
+          7 => @cti
+        }.compact
+      end
+    end
+
+    class HcertClaims < Claims
+      attr_reader :hcert # specific to the hcert
+      def initialize(hash)
+        super(hash)
+        @hcert = hash[:hcert] || hash[-260]
+      end
+
+      def to_h
+        super.merge({ -260 => @hcert })
       end
     end
 
     def self.from_hex(hex)
-      # hex.scan(/../).map { |x| x.hex.chr }.join
       from_bin([hex].pack('H*'))
     end
 
@@ -49,11 +84,11 @@ module Cose
       return SignedCwt.new(protected:, unprotected:, payload:, signature:)
     end
 
-    def initialize(protected:, unprotected:, payload:, signature: nil)
+    def initialize(protected:, unprotected:, payload: {}, signature: nil, claims: nil)
       @protected = protected.class == String ? CBOR.decode(protected) : protected
       @unprotected = unprotected
-      @claims = payload.class == String ? CBOR.decode(payload) : payload
-      @payload = payload
+      @payload = payload.class == String ? CBOR.decode(payload) : payload
+      @claims = claims || HcertClaims.new(@payload)
       @signature = signature
     end
 
@@ -78,10 +113,6 @@ module Cose
       CBOR.encode(['Signature1', @protected.empty? ? ''.b : protected.to_cbor, external_data || ''.b, @payload])
     end
 
-    def claims
-      Claims.from_hash(**@payload.slice(1, 2, 3, 4, 5, 6, 7))
-    end
-
     def to_bin
       CBOR::Tagged.new(18, [CBOR.encode(@protected), @unprotected, @payload, @signature]).to_cbor
     end
@@ -98,7 +129,7 @@ module Cose
       {
         protected: @protected,
         unprotected: @unprotected,
-        payload: @payload,
+        payload: @claims.to_h,
         signature: @signature
       }
     end

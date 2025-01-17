@@ -32,6 +32,6 @@ style:
 
 ## Historique Vaccinal
 
-|DATE       |    VACCIN     | DIESASES                                                               |
+|DATE       |    VACCIN     | DISEASES                                                               |
 |-----------|---------------|------------------------------------------------------------------------|
 <%= hcert_data[:v].map { |vr| "|#{vr[:date]} | #{vr[:name]} |  |" }.join("\n")  %>

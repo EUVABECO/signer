@@ -2,7 +2,7 @@ FROM ruby:3.3.3-alpine as base
 LABEL maintainer="developers@mesvaccins.net"
 # === Install GEMS === #
 
-RUN apk update && apk add --no-cache build-base
+RUN apk update && apk add --no-cache build-base gcc
 RUN gem update --system \
   && gem install bundler:2.3.3 --no-document
 

@@ -21,6 +21,8 @@ module Initializers
   def self.init_all(**dependencies)
     logger = Logger.new($stdout)
     logger.level = Logger::DEBUG
+    dependencies[:time] ||= Time
+
     dependencies[:logger] ||= logger
 
     pub_key_store = Utils::KeyStore.new(pub: true)
@@ -35,7 +37,7 @@ module Initializers
 
     dependencies[:nuva] ||= Nuva::Nuva.load
     dependencies[:md2pdf] ||= Utils::Md2Pdf.new
-    procedures = init_procedures(priv_key_store:, signer:, router:, nuva: dependencies[:nuva], md2pdf: dependencies[:md2pdf])
+    procedures = init_procedures(priv_key_store:, signer:, router:, nuva: dependencies[:nuva], md2pdf: dependencies[:md2pdf], time: dependencies[:time])
     web_router = init_router(procedures:, router:)
     dependencies[:procedures] ||= procedures
     dependencies[:web_router] ||= web_router
@@ -44,8 +46,8 @@ module Initializers
     dependencies
   end
 
-  def self.init_procedures(priv_key_store:, signer:, router:, md2pdf:, nuva:)
-    to_cwt = Procedures::ToCwt.new(priv_key_store:, signer:)
+  def self.init_procedures(priv_key_store:, signer:, router:, md2pdf:, nuva:, time:)
+    to_cwt = Procedures::ToCwt.new(priv_key_store:, signer:, time:)
     to_hcert = Procedures::ToHcert.new(signer:, to_cwt:)
     to_jwt = Procedures::ToJwt.new(priv_key_store:)
     {
