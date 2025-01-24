@@ -57,6 +57,10 @@ module Cose
           7 => @cti
         }.compact
       end
+
+      def to_cbor
+        to_h.to_cbor
+      end
     end
 
     class HcertClaims < Claims
@@ -88,7 +92,7 @@ module Cose
       @protected = protected.class == String ? CBOR.decode(protected) : protected
       @unprotected = unprotected
       @payload = payload.class == String ? CBOR.decode(payload) : payload
-      @claims = claims || HcertClaims.new(@payload)
+      @claims = claims || Claims.new(@payload)
       @signature = signature
     end
 
@@ -110,11 +114,12 @@ module Cose
     end
 
     def signature_data(external_data = nil)
-      CBOR.encode(['Signature1', @protected.empty? ? ''.b : protected.to_cbor, external_data || ''.b, @payload])
+      CBOR.encode(['Signature1', @protected.empty? ? ''.b : protected.to_cbor, external_data || ''.b, @claims.to_cbor])
     end
 
     def to_bin
-      CBOR::Tagged.new(18, [CBOR.encode(@protected), @unprotected, @payload, @signature]).to_cbor
+      # 18 for 1 signer
+      CBOR::Tagged.new(18, [CBOR.encode(@protected), @unprotected, @claims.to_cbor, @signature]).to_cbor
     end
 
     def to_hex

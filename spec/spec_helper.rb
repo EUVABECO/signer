@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
+require 'byebug'
 require_relative '../initializers'
 
 DEPENDENCIES = Initializers.init_all

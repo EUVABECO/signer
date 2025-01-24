@@ -37,10 +37,8 @@ module Cose
     def sign(msg, kid)
       key = @priv_key_store.get(kid).signing_key
       curve_definition = curve_by_name(key.group.curve_name)
-
       digest = OpenSSL::Digest.new(curve_definition[:digest])
       asn1_to_raw(key.dsa_sign_asn1(digest.digest(msg)), key)
-      # key.sign(digest, msg)
     end
 
     def hex_signature(msg, kid)
@@ -71,13 +69,11 @@ module Cose
       raise 'Signature verification raised'
     end
 
-    def raw_to_asn1(signature, private_key)
-      byte_size = (private_key.group.degree + 7) / 8
-      sig_bytes = signature[0..(byte_size - 1)]
-      sig_char = signature[byte_size..-1] || ''
-      OpenSSL::ASN1::Sequence.new(
-        [sig_bytes, sig_char].map { |int| OpenSSL::ASN1::Integer.new(OpenSSL::BN.new(int, 2)) }
-      ).to_der
+    def raw_to_asn1(signature, public_key)
+      byte_size = (public_key.group.degree + 7) / 8
+      r = signature[0..(byte_size - 1)]
+      s = signature[byte_size..-1] || ''
+      OpenSSL::ASN1::Sequence.new([r, s].map { |int| OpenSSL::ASN1::Integer.new(OpenSSL::BN.new(int, 2)) }).to_der
     end
   end
 end

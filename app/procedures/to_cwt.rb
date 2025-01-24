@@ -21,7 +21,7 @@ module Procedures
       cwt = Cose::SignedCwt.new(
         protected:,
         unprotected:,
-        claims: Cose::SignedCwt::HcertClaims.new(iss: 'SYA', iat: @time.now.to_i, exp: @time.now.to_i + 315360000, nbf: @time.now.to_i,  hcert: hcert_data)
+        claims: Cose::SignedCwt::HcertClaims.new(iss: 'SYA', iat: @time.now.to_i, exp: @time.now.to_i + 315360000, hcert: hcert_data)
       )
       Cose::SignedCwt.new(**cwt.deconstruct_keys, signature: @signer.sign(cwt.signature_data, jwk[:kid])).to_bin
     end
