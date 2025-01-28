@@ -135,7 +135,8 @@ module Cose
         protected: @protected,
         unprotected: @unprotected,
         payload: @claims.to_h,
-        signature: @signature
+        signature: @signature,
+        claims: @claims
       }
     end
   end
